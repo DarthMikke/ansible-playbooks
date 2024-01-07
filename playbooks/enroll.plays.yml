@@ -1,0 +1,54 @@
+---
+- name: Ask for the host to setup
+  hosts: localhost
+  gather_facts: false
+  vars_prompt:
+    - name: target_host
+      prompt: What host do you wish to configure?
+      private: false
+  tasks:
+    - name: Add host to the hosts group
+      ansible.builtin.add_host:
+        name: "{{ target_host }}"
+        groups: target_hosts
+- name: Setup remote with ansible user and SSH key
+  vars_prompt:
+    - name: username
+      prompt: What is your username?
+      private: false
+    - name: password
+      prompt: What is your password?
+  hosts: target_hosts
+  vars:
+    ansible_user: "{{ username }}"
+    ansible_password: "{{ password }}"
+    ansible_become_password: "{{ password }}"
+  tasks:
+    - name: Create ansible user
+      become: true
+      ansible.builtin.user:
+        name: ansible
+        comment: Ansible
+        groups: sudo
+        append: true
+    - name: Insert SSH key
+      become: true
+      ansible.posix.authorized_key:
+        user: ansible
+        validate_certs: false
+        key: "{{ lookup('file', './ansible.pub') }}"
+        comment: "Uploaded from {{ansible_facts.env.USER}}"
+    - name: Passwordless sudo
+      become: true
+      ansible.builtin.lineinfile:
+        path: "/etc/sudoers"
+        line: "ansible ALL=(ALL:ALL) NOPASSWD: ALL"
+- name: Final check
+  hosts: target_hosts
+  vars:
+    ansible_user: ansible
+    ansible_ssh_private_key_file: ansible.key
+  tasks:
+    - name: Final check
+      ansible.builtin.debug:
+        msg: "Things did work!"
