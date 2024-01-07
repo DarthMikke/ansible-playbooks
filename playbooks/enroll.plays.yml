@@ -37,7 +37,7 @@
         user: ansible
         validate_certs: false
         key: "{{ lookup('file', './ansible.pub') }}"
-        comment: "Uploaded from {{ansible_facts.env.USER}}"
+        comment: "Uploaded by {{ansible_facts.env.USER}}"
     - name: Passwordless sudo
       become: true
       ansible.builtin.lineinfile:

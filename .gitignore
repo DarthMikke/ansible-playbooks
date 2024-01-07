@@ -2,3 +2,7 @@
 *.pub
 hosts.yml
 *.ini
+
+.DS_Store
+
+playground/
