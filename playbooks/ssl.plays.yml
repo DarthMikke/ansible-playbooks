@@ -5,7 +5,7 @@
     - name: password
       prompt: localhost sudo password
   vars:
-    credentials: "./linode-credentials.ini"
+    credentials: "../linode-credentials.ini"
     ansible_become: true
     ansible_become_password: "{{ password }}"
     web_domains: "example.com,*.example.com"
