@@ -8,43 +8,31 @@
     credentials: "../linode-credentials.ini"
     ansible_become: true
     ansible_become_password: "{{ password }}"
-    web_domains: "example.com,*.example.com"
-    vpn_domains: "vpn.example.com,*.vpn.example.com"
+    cert_groups:
+      - web
+      - vpn_servers
   tasks:
     - name: Check for Linode credentials
       ansible.builtin.stat:
         path: "{{ credentials }}"
       register: credentials_stat
-    - name: "Generate web certs"
+    - name: "Generate certs"
       when: credentials_stat.stat.exists
+      loop: "{{cert_groups}}"
       ansible.builtin.shell:
-        cmd: "certbot certonly -n --dns-linode --dns-linode-credentials {{ credentials }} -d {{ web_domains }}"
-    - name: Generate VPN certs
-      when: credentials_stat.stat.exists
-      ansible.builtin.shell:
-        cmd: "certbot certonly -n --dns-linode --dns-linode-credentials {{ credentials }} -d {{ vpn_domains }}"
+        cmd: "certbot certonly -n --dns-linode --dns-linode-credentials {{ credentials }} -d {{hostvars[groups[item].0].ssl_domains}}"
     - name: Error message
       ansible.builtin.debug:
         msg: "Missing Linode credentials file: {{ credentials }}"
       when: credentials_stat.stat.exists != True
 
-- name: "Update VPN certs"
-  hosts: vpn_servers
+- name: "Sync certs"
+  hosts: web,vpn_servers
   become: true
   tasks:
     - name: "Upload the certs"
       ansible.builtin.copy:
-        src: /etc/letsencrypt/live/vpn.example.com/
-        dest: /srv/certs/
-        mode: '600'
-        owner: www-data
-
-- name: "Update web server certs"
-  hosts: web
-  tasks:
-    - name: "Upload the certs"
-      ansible.builtin.copy:
-        src: /etc/letsencrypt/live/example.com/
+        src: "/etc/letsencrypt/live/{{ ssl_main_domain }}/"
         dest: /srv/certs/
         mode: '600'
         owner: www-data
