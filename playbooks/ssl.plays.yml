@@ -5,12 +5,14 @@
     - name: password
       prompt: localhost sudo password
   vars:
+    # If you need customization, edit the variables below:
     credentials: "../linode-credentials.ini"
-    ansible_become: true
-    ansible_become_password: "{{ password }}"
     cert_groups:
       - web
       - vpn_servers
+    # Do not edit anything below
+    ansible_become: true
+    ansible_become_password: "{{ password }}"
   tasks:
     - name: Check for Linode credentials
       ansible.builtin.stat:
