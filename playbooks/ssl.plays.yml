@@ -25,9 +25,14 @@
       ansible.builtin.debug:
         msg: "Missing Linode credentials file: {{ credentials }}"
       when: credentials_stat.stat.exists != True
+    - name: Create host group for uploads
+      loop: "{{ cert_groups|map('extract', groups)|flatten }}"
+      ansible.builtin.add_host:
+        name: "{{ item }}"
+        group: target_hosts
 
 - name: "Sync certs"
-  hosts: web,vpn_servers
+  hosts: "{{ groups.target_hosts }}"
   become: true
   tasks:
     - name: "Upload the certs"
