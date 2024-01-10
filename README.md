@@ -4,10 +4,11 @@ I use these playbooks for managing my web server and home servers.
 
 ## Playbooks description
 
-### `enroll.plays.yml`
+### [`enroll.plays.yml`](playbooks/enroll.plays.yml)
 
 Prepares host for further management with ansible. The pllaybook creates a user called ansible, adds it to the sudoers file with no password required, and inserts SSH key for the user.
-### `ssl.plays.yml`
+
+### [`ssl.plays.yml`](playbooks/ssl.plays.yml)
 
 Generate SSL certs with Let's Encrypt as provider and Linode as DNS registrar.
 
