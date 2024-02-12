@@ -1,0 +1,7 @@
+---
+- name: "Sync certs"
+  hosts: "all"
+  tasks:
+    - name: "Test connection"
+      ansible.builtin.shell:
+        cmd: "ls"
