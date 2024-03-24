@@ -1,0 +1,28 @@
+---
+- name: New project
+  vars_prompt:
+    - name: project
+      prompt: "Project name"
+      private: false
+  hosts:
+    - web
+    - stage
+  tasks:
+    - name: Generate username
+      ansible.builtin.set_fact:
+        username: "www-{{ project }}"
+    - name: Add user
+      become: true
+      ansible.builtin.user:
+        name: "{{ username }}"
+        groups: "{{ username }},www-data"
+        append: true
+        generate_ssh_key: true
+        ssh_key_file: "~/.ssh/{{ inventory_hostname }}"
+    - name: Create project directory
+      ansible.builtin.file:
+        path: "/srv/webprojects/{{ project }}"
+        owner: "{{ username }}"
+        state: directory
+        mode: "775"
+    # - name: Copy configuration
