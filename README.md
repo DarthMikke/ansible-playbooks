@@ -30,3 +30,9 @@ Generate SSL certs with Let's Encrypt as provider and Linode as DNS registrar.
   - web
   - vpn_servers
 ```
+
+### [`new-project.plays.yml`](playbooks/new-project.plays.yml)
+
+For a project called `homepage` ensure that:
+1. a `www-homepage` user exists and is accessible from the current node;
+2. a `homepage` directory exists in the server root directory.
