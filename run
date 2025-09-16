@@ -1,0 +1,22 @@
+#!/bin/bash
+if [ $# -lt 1 ]; then
+  echo "Usage: $0 <ansible_playbook_name>"
+  echo "Variables:"
+  echo "  <ansible_playbook_name>"
+  echo "        will run playbook located at playbooks/<ansible_playbook_name>.plays.yml"
+    exit 1
+fi
+
+hosts_path=''
+if [[ -n $HOSTS ]]; then
+  hosts_path=$HOSTS
+else
+  if [ -f "hosts/hosts.yml" ]; then
+    hosts_path="hosts/hosts.yml"
+  else
+    echo "'HOSTS' env var not found and 'hosts/hosts.yml' file does not exist."
+    exit 1
+  fi
+fi
+
+ansible-playbook -i $hosts_path "playbooks/$1.plays.yml" ${@:2}
