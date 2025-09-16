@@ -4,7 +4,7 @@
   vars:
     project_dir: "/srv/linkwarden"
     proxy_conf_dir: "/srv/web"
-    baserow_url: "linkwarden.ts.millim.no"
+    project_url: "linkwarden.ts.millim.no"
   tasks:
     - name: Ensure project directory exists
       ansible.builtin.file:
@@ -31,8 +31,8 @@
         project_src: "{{ project_dir }}"
     - name: Deploy reverse proxy configuration
       ansible.builtin.template:
-        src: linkwarden-reverse-proxy.conf.j2
-        dest: "linkwarden/{{ proxy_conf_dir }}/linkwarden.conf"
+        src: linkwarden/linkwarden-reverse-proxy.conf.j2
+        dest: "{{ proxy_conf_dir }}/linkwarden.conf"
         mode: "0664"
     - name: Reload server configuration
       community.docker.docker_container_exec:
