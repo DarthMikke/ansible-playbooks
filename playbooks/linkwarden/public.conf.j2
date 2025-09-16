@@ -1,0 +1,15 @@
+<VirtualHost *:443>
+	ServerName {{ public_url }}
+
+	SSLEngine on
+	SSLCertificateFile /srv/certs/cert.pem
+	SSLCertificateKeyFile	/srv/certs/privkey.pem
+	SSLCertificateChainFile /srv/certs/fullchain.pem
+
+	SSLProxyEngine On
+	ProxyPreserveHost Off
+    SSLProxyCheckPeerCN on
+    SSLProxyCheckPeerExpire on
+	ProxyPass	/	https://{{ project_url }}/
+	ProxyPassReverse	/	https://{{ project_url }}/
+</VirtualHost>

@@ -40,3 +40,21 @@
         container: web
         command: killall -HUP httpd
       when: "{{ proxyconf.changed }}"
+- name: Public Linkwarden ingress
+  hosts: millim.no
+  vars:
+    project_url: "linkwarden.ts.millim.no"
+    public_url: "linkwarden.millim.no"
+    proxy_conf_dir: "/srv/web/homelab"
+  tasks:
+    - name: Deploy reverse proxy configuration
+      ansible.builtin.template:
+        src: linkwarden/public.conf.j2
+        dest: "{{ proxy_conf_dir }}/linkwarden.conf"
+        mode: "0664"
+      register: proxyconf
+    - name: Reload server configuration
+      community.docker.docker_container_exec:
+        container: web-2
+        command: killall -HUP httpd
+      when: "{{ proxyconf.changed }}"
