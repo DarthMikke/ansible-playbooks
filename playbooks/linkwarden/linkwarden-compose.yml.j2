@@ -1,0 +1,29 @@
+---
+version: "3.5"
+services:
+  postgres:
+    image: postgres:16-alpine
+    env_file: .env
+    restart: always
+    networks:
+      - default
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+  linkwarden:
+    hostname: linkwarden
+    env_file: .env
+    environment:
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
+    restart: always
+    image: ghcr.io/linkwarden/linkwarden:v2.8.4
+    networks:
+      - millim-proxy
+      - default
+    volumes:
+      - ./data:/data/data
+    depends_on:
+      - postgres
+networks:
+  default:
+  millim-proxy:
+    external: true

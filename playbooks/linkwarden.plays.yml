@@ -1,0 +1,40 @@
+---
+- name: Set up Linkwarden
+  hosts: portainer
+  vars:
+    project_dir: "/srv/linkwarden"
+    proxy_conf_dir: "/srv/web"
+    baserow_url: "linkwarden.ts.millim.no"
+  tasks:
+    - name: Ensure project directory exists
+      ansible.builtin.file:
+        path: "{{ project_dir }}"
+        state: directory
+        mode: "0775"
+    # - name: Ensure data directory exists
+    #   ansible.builtin.file:
+    #     path: "{{ project_dir }}/data"
+    #     state: directory
+    #     mode: "0775"
+    - name: Ensure correct dotenv file exists
+      ansible.builtin.copy:
+        src: linkwarden/linkwarden.env
+        dest: "{{ project_dir }}/.env"
+        mode: "0664"
+    - name: Ensure Compose project exists
+      ansible.builtin.template:
+        src: linkwarden/linkwarden-compose.yml.j2
+        dest: "{{ project_dir }}/compose.yml"
+        mode: "0664"
+    - name: Run the Compose project
+      community.docker.docker_compose_v2:
+        project_src: "{{ project_dir }}"
+    - name: Deploy reverse proxy configuration
+      ansible.builtin.template:
+        src: linkwarden-reverse-proxy.conf.j2
+        dest: "linkwarden/{{ proxy_conf_dir }}/linkwarden.conf"
+        mode: "0664"
+    - name: Reload server configuration
+      community.docker.docker_container_exec:
+        container: web
+        command: killall -HUP httpd

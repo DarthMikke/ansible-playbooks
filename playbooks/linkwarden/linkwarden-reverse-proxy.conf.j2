@@ -1,0 +1,12 @@
+<VirtualHost *:443>
+	ServerName linkwarden.ts.millim.no
+
+	SSLEngine on
+	SSLCertificateFile /srv/certs/cert.pem
+	SSLCertificateKeyFile	/srv/certs/privkey.pem
+	SSLCertificateChainFile /srv/certs/fullchain.pem
+
+	ProxyPreserveHost On
+	ProxyPass	/	http://linkwarden:3000/
+	ProxyPassReverse	/	http://linkwarden:3000/
+</VirtualHost>
