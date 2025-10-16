@@ -17,8 +17,8 @@
     #     state: directory
     #     mode: "0775"
     - name: Ensure correct dotenv file exists
-      ansible.builtin.copy:
-        src: linkwarden/linkwarden.env
+      ansible.builtin.template:
+        src: linkwarden/linkwarden.env.j2
         dest: "{{ project_dir }}/.env"
         mode: "0664"
     - name: Ensure Compose project exists
