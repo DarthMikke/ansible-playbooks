@@ -39,7 +39,7 @@
       community.docker.docker_container_exec:
         container: web
         command: killall -HUP httpd
-      when: "{{ proxyconf.changed }}"
+      when: proxyconf.changed
 - name: Public Linkwarden ingress
   hosts: millim.no
   vars:
@@ -57,4 +57,4 @@
       community.docker.docker_container_exec:
         container: web-2
         command: killall -HUP httpd
-      when: "{{ proxyconf.changed }}"
+      when: proxyconf.changed
