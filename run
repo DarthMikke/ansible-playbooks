@@ -19,4 +19,4 @@ else
   fi
 fi
 
-ansible-playbook -i $hosts_path "playbooks/$1.plays.yml" ${@:2}
+ansible-playbook -e @vault.yaml --vault-password-file password.txt -i $hosts_path "playbooks/$1.plays.yml" ${@:2}
