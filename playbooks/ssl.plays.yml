@@ -1,32 +1,62 @@
 ---
 - name: "Generate certs locally"
   hosts: localhost
-  vars_prompt:
-    - name: password
-      prompt: localhost sudo password
   vars:
     # If you need customization, edit the variables below:
-    credentials: "../linode-credentials.ini"
     cert_groups:
       - web
       - vpn_servers
     # Do not edit anything below
-    ansible_become: true
-    ansible_become_password: "{{ password }}"
   tasks:
-    - name: Check for Linode credentials
-      ansible.builtin.stat:
-        path: "{{ credentials }}"
-      register: credentials_stat
-    - name: "Generate certs"
-      when: credentials_stat.stat.exists
+    - name: Make Linode credentials file
+      ansible.builtin.template:
+        src: "ssl/linode.ini.j2"
+        dest: "{{ pwd }}/ssl/linode.ini"
+        mode: "400"
+    - name: Ensure tmp directory
+      ansible.builtin.file:
+        path: "{{ pwd }}/ssl/certs"
+        state: directory
+        mode: "755"
+    - name: Create certbot container
+      community.docker.docker_container:
+        image: certbot/dns-linode:v5.1.0
+        name: millim_certbot
+        docker_host: "{{ docker_host }}"
+        state: started
+        output_logs: true
+        detach: false
+        mounts:
+          - source: "{{ pwd }}/ssl/certs"
+            target: /etc/letsencrypt
+            type: bind
+          - source: "{{ pwd }}/ssl/linode.ini"
+            target: /linode.ini
+            read_only: true
+            type: bind
+          - source: "{{ pwd }}/ssl/logs"
+            target: /var/log/letsencrypt/
+            type: bind
+        command:
+          - certonly
+          - -n
+          - --dns-linode
+          - --agree-tos
+          - --dns-linode-credentials
+          - /linode.ini
+          - --dns-linode-propagation-seconds
+          - 240
+          - -d
+          - "{{hostvars[groups[item].0].ssl_domains}}"
       loop: "{{cert_groups}}"
-      ansible.builtin.shell:
-        cmd: "certbot certonly -n --dns-linode --dns-linode-credentials {{ credentials }} -d {{hostvars[groups[item].0].ssl_domains}}"
-    - name: Error message
-      ansible.builtin.debug:
-        msg: "Missing Linode credentials file: {{ credentials }}"
-      when: credentials_stat.stat.exists != True
+      tags: generate
+    - name: Delete container
+      community.docker.docker_container:
+        image: certbot/dns-linode:v5.1.0
+        name: millim_certbot
+        docker_host: "{{ docker_host }}"
+        state: absent
+      when: false
     - name: Create host group for uploads
       loop: "{{ cert_groups|map('extract', groups)|flatten }}"
       ansible.builtin.add_host:
@@ -39,7 +69,7 @@
   tasks:
     - name: "Upload the certs"
       ansible.builtin.copy:
-        src: "/etc/letsencrypt/live/{{ ssl_main_domain }}/"
+        src: "{{ pwd }}/ssl/certs/live/{{ ssl_main_domain }}/"
         dest: /srv/certs/
         mode: '600'
         owner: www-data
