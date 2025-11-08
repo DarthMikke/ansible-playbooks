@@ -1,0 +1,12 @@
+<VirtualHost *:443>
+	ServerName {{ project_url }}
+
+	SSLEngine on
+	SSLCertificateFile /srv/certs/cert.pem
+	SSLCertificateKeyFile	/srv/certs/privkey.pem
+	SSLCertificateChainFile /srv/certs/fullchain.pem
+
+	ProxyPreserveHost On
+	ProxyPass	/	http://phpmyadmin/
+	ProxyPassReverse	/	http://phpmyadmin/
+</VirtualHost>

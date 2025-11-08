@@ -1,0 +1,28 @@
+services:
+  mysql:
+    image: mariadb:12-ubi
+    restart: always
+    networks:
+      - mysql
+    volumes:
+      - ./data:/var/lib/mysql
+    environment:
+      MARIADB_ROOT_PASSWORD: "{{ mariadb_password }}"
+  phpmyadmin:
+    image: phpmyadmin:5.2-apache
+    restart: always
+    hostname: phpmyadmin
+    networks:
+      - mysql
+      - default
+      - rproxy
+    links:
+      - "mysql:db"
+    environment: {}
+    volumes:
+     - /sessions
+networks:
+  default: {}
+  mysql: {}
+  rproxy:
+    external: true

@@ -1,0 +1,46 @@
+---
+- name: Set up MariaDB
+  hosts:
+    - mysql
+  vars:
+    project_dir: /srv/mysql
+    project_url: "{{ mysql_url }}"
+  tasks:
+    - name: Ensure project directory exists
+      ansible.builtin.file:
+        path: "{{ project_dir }}"
+        state: directory
+        mode: "0775"
+        owner: ansible
+        group: ansible
+      become: true
+    - name: Ensure data directory exists
+      ansible.builtin.file:
+        path: "{{ project_dir }}/data"
+        state: directory
+        mode: "0775"
+        owner: ansible
+        group: ansible
+      become: true
+    - name: Ensure Compose project exists
+      ansible.builtin.template:
+        src: "mysql/mysql-compose.yml.j2"
+        dest: "{{ project_dir }}/compose.yml"
+        mode: "0664"
+        owner: ansible
+        group: ansible
+      become: true
+    - name: Run the Compose project
+      community.docker.docker_compose_v2:
+        project_src: "{{ project_dir }}"
+    - name: Deploy reverse proxy configuration
+      ansible.builtin.template:
+        src: "mysql/mysql-reverse-proxy.conf.j2"
+        dest: "{{ proxy_conf_dir }}/mysql.conf"
+        mode: "0664"
+      register: proxyconf
+    - name: Reload server configuration
+      community.docker.docker_container_exec:
+        container: "{{ proxy_container_name }}"
+        command: killall -HUP httpd
+      when: proxyconf.changed
